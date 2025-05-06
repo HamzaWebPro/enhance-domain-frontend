@@ -12,11 +12,9 @@ const Page = () => {
   const [showClaimButton, setShowClaimButton] = useState(false);
   const [showInfoForm, setShowInfoForm] = useState(false);
 
-  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [amount, setAmount] = useState("");
 
-  const [fullNameError, setFullNameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [amountError, setAmountError] = useState("");
 
@@ -68,11 +66,6 @@ const Page = () => {
   const handleConfirm = () => {
     let isValid = true;
 
-    if (!fullName.trim()) {
-      setFullNameError("Full name is required");
-      isValid = false;
-    }
-
     if (!email.trim()) {
       setEmailError("Email is required");
       isValid = false;
@@ -96,7 +89,7 @@ const Page = () => {
 
     const finalData = {
       domain: domain + extension,
-      fullName,
+
       email,
       amount,
       status: "Pending",
@@ -106,16 +99,11 @@ const Page = () => {
 
     setDomain("");
     setExtension(".x1300");
-    setFullName("");
+
     setEmail("");
     setAmount("");
     setShowInfoForm(false);
     message.success("Data submitted. Check below demo admin panel.");
-  };
-
-  const handleFullNameChange = (e) => {
-    setFullName(e.target.value);
-    setFullNameError(e.target.value.trim() ? "" : "Full name is required");
   };
 
   const handleEmailChange = (e) => {
@@ -164,8 +152,10 @@ const Page = () => {
     Approved: "green",
     Rejected: "red",
     "Payment Issue": "volcano",
-    "Paid": "blue",
+    Paid: "blue",
   };
+
+ 
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-green-100 via-black to-green-200 flex items-center justify-center">
@@ -203,16 +193,6 @@ const Page = () => {
               {showInfoForm && (
                 <div className="w-full mt-6 flex flex-col gap-3">
                   <Input
-                    placeholder="Enter your full name"
-                    value={fullName}
-                    onChange={handleFullNameChange}
-                    status={fullNameError ? "error" : ""}
-                  />
-                  {fullNameError && (
-                    <p className="text-red-500 text-sm">{fullNameError}</p>
-                  )}
-
-                  <Input
                     placeholder="Enter your email"
                     value={email}
                     onChange={handleEmailChange}
@@ -244,7 +224,8 @@ const Page = () => {
 
           {/* Admin Panel */}
           <h2 className="text-xl md:text-2xl text-white font-semibold mt-12">
-            👇 These data will be visible to admin in the admin panel (demo only)
+            👇 These data will be visible to admin in the admin panel (demo
+            only)
           </h2>
 
           <div className="w-full max-w-2xl mt-6 space-y-4">
@@ -253,10 +234,15 @@ const Page = () => {
                 key={index}
                 className="bg-white/10 text-white p-4 rounded-xl border border-white/20 shadow-md"
               >
-                <p><strong>Domain:</strong> {item.domain}</p>
-                <p><strong>Full Name:</strong> {item.fullName}</p>
-                <p><strong>Email:</strong> {item.email}</p>
-                <p><strong>Amount:</strong> ${item.amount}</p>
+                <p>
+                  <strong>Domain:</strong> {item.domain}
+                </p>
+                <p>
+                  <strong>Email:</strong> {item.email}
+                </p>
+                <p>
+                  <strong>Amount:</strong> ${item.amount}
+                </p>
                 <p className="mb-2">
                   <strong>Status:</strong>{" "}
                   <Tag color={statusColors[item.status] || "default"}>
@@ -264,19 +250,35 @@ const Page = () => {
                   </Tag>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <Button size="small" onClick={() => updateStatus(index, "Approved")}>
+                  <Button
+                    size="small"
+                    onClick={() => updateStatus(index, "Approved")}
+                  >
                     Approve
                   </Button>
-                  <Button size="small" danger onClick={() => updateStatus(index, "Rejected")}>
+                  <Button
+                    size="small"
+                    danger
+                    onClick={() => updateStatus(index, "Rejected")}
+                  >
                     Reject
                   </Button>
-                  <Button size="small" type="dashed" onClick={() => updateStatus(index, "Payment Issue")}>
+                  <Button
+                    size="small"
+                    type="dashed"
+                    onClick={() => updateStatus(index, "Payment Issue")}
+                  >
                     Mark as Payment Issue
                   </Button>
-                  <Button size="small" type="primary" onClick={() => updateStatus(index, "Paid")}>
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={() => updateStatus(index, "Paid")}
+                  >
                     Mark as Paid
                   </Button>
                 </div>
+                Request Date - 06/05/2025
               </div>
             ))}
           </div>
