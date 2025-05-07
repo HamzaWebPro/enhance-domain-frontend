@@ -1,10 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Container from "./component/_container/Container";
-import { Button, Input, Select, message, Tag } from "antd";
+import { Button, Input, Select } from "antd";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
-
 
 const { Option } = Select;
 
@@ -15,62 +14,80 @@ const Page = () => {
   const [showClaimButton, setShowClaimButton] = useState(false);
   const [showInfoForm, setShowInfoForm] = useState(false);
   const [loader, setLoader] = useState(false);
-
+  const [allRequest, setAllRequest] = useState([]);
   const [email, setEmail] = useState("");
   const [amount, setAmount] = useState("");
   const [emailError, setEmailError] = useState("");
   const [amountError, setAmountError] = useState("");
-
-  const [submissions, setSubmissions] = useState([]);
+  const [domainAvailable, setDomainAvailable] = useState(false);
 
   const domainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  // Fetch all domains on load
+  useEffect(() => {
+    const fetchDomains = async () => {
+      try {
+        const response = await fetch("/api/getRequest");
+        const data = await response.json();
+        setAllRequest(data.domains || []);
+      } catch (err) {
+        console.error("Failed to fetch domains:", err);
+      }
+    };
+    fetchDomains();
+  }, []);
+
   const handleInputChange = (e) => {
-    setEmail("");
-    setAmount("");
     const value = e.target.value.trim();
     setDomain(value);
-
-    const fullDomain = value + extension;
-    const isDuplicate = submissions.some((item) => item.domain === fullDomain);
+    setEmail("");
+    setAmount("");
+    setShowInfoForm(false);
 
     if (!domainPattern.test(value)) {
       setError("Use a valid domain name");
       setShowClaimButton(false);
-    } else if (isDuplicate) {
-      setError("This domain is already claimed");
+      setDomainAvailable(false);
+      return;
+    }
+
+    const fullDomain = value + extension;
+    const isDuplicate = allRequest?.some((item) => item.domain === fullDomain);
+
+    if (isDuplicate) {
+      setError("This domain is not available");
+      setDomainAvailable(false);
       setShowClaimButton(false);
     } else {
       setError("");
+      setDomainAvailable(true);
       setShowClaimButton(true);
-      console.log("Full domain:", fullDomain);
     }
-
-    setShowInfoForm(false);
   };
 
   const handleExtensionChange = (value) => {
     setExtension(value);
     const fullDomain = domain + value;
-    const isDuplicate = submissions.some((item) => item.domain === fullDomain);
+    const isDuplicate = allRequest?.some((item) => item.domain === fullDomain);
 
     if (domainPattern.test(domain)) {
       if (isDuplicate) {
-        setError("This domain is already claimed");
+        setError("This domain is not available");
+        setDomainAvailable(false);
         setShowClaimButton(false);
       } else {
         setError("");
+        setDomainAvailable(true);
         setShowClaimButton(true);
-        console.log("Full domain:", fullDomain);
       }
     }
     setShowInfoForm(false);
   };
 
   const handleEmailChange = (e) => {
-    setEmail(e.target.value);
     const val = e.target.value;
+    setEmail(val);
     if (!val.trim()) {
       setEmailError("Email is required");
     } else if (!emailPattern.test(val)) {
@@ -81,25 +98,16 @@ const Page = () => {
   };
 
   const handleAmountChange = (e) => {
-    setAmount(e.target.value);
     const val = e.target.value;
+    setAmount(val);
     if (!val.trim()) {
       setAmountError("Amount is required");
-    } else if (isNaN(val) || Number(val) <= 0) {
+    } else if (isNaN(val)) {
       setAmountError("Enter a valid amount");
     } else {
       setAmountError("");
     }
   };
-
-  const selectAfter = (
-    <Select defaultValue=".x1300" onChange={handleExtensionChange}>
-      <Option value=".x1300">.x1300</Option>
-      <Option value=".a-102">.a-102</Option>
-      <Option value=".alishea">.alishea</Option>
-      <Option value=".antwyne">.antwyne</Option>
-    </Select>
-  );
 
   const submitRequest = () => {
     setLoader(true);
@@ -112,7 +120,6 @@ const Page = () => {
       setLoader(false);
       return toast.error("Domain Name is required");
     }
-
     if (!email.trim()) {
       setLoader(false);
       return toast.error("Email is required");
@@ -125,11 +132,11 @@ const Page = () => {
       setLoader(false);
       return toast.error("Amount is required");
     }
-
-    if (isNaN(amount) || Number(amount) <= 0) {
+    if (isNaN(amount)) {
       setLoader(false);
       return toast.error("Enter a valid amount");
     }
+
     axios
       .post("/api/sendRequest", {
         domain: domain + extension,
@@ -137,15 +144,14 @@ const Page = () => {
         amount: amount,
       })
       .then((res) => {
-        setShowInfoForm(false);
-        setShowClaimButton(false);
-        console.log("Backend response:", res.data.message);
         toast(res.data.message);
         setLoader(false);
         setDomain("");
         setExtension(".x1300");
         setEmail("");
         setAmount("");
+        setShowClaimButton(false);
+        setShowInfoForm(false);
       })
       .catch((err) => {
         setLoader(false);
@@ -153,10 +159,17 @@ const Page = () => {
       });
   };
 
+  const selectAfter = (
+    <Select defaultValue=".x1300" onChange={handleExtensionChange}>
+      <Option value=".x1300">.x1300</Option>
+      <Option value=".a-102">.a-102</Option>
+      <Option value=".alishea">.alishea</Option>
+      <Option value=".antwyne">.antwyne</Option>
+    </Select>
+  );
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-green-100 via-black to-green-200 flex items-center justify-center">
-      {/* Background Shapes */}
-
       <div className="absolute w-[400px] h-[400px] bg-green-300 opacity-20 rounded-full -top-40 -left-40 blur-3xl"></div>
       <div className="absolute w-[300px] h-[300px] bg-black opacity-10 rotate-45 -bottom-32 -right-32 blur-2xl"></div>
       <div className="absolute w-[200px] h-[200px] bg-green-200 opacity-10 rounded-full top-20 right-1/4 blur-2xl"></div>
@@ -169,6 +182,16 @@ const Page = () => {
 
           <div className="w-full max-w-xl p-8 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl">
             <div className="flex flex-col items-center gap-2">
+              {domain && (
+                <p className="text-sm font-semibold">
+                  {domainAvailable ? (
+                    <span className="text-green-400">This domain is available</span>
+                  ) : (
+                    <span className="text-red-500">This domain is not available</span>
+                  )}
+                </p>
+              )}
+
               <div className="flex justify-between w-full text-white">
                 <p>Type Your Custom Domain Name</p>
                 <p>Select TLD</p>
@@ -211,11 +234,9 @@ const Page = () => {
                     <p className="text-red-500 text-sm">{amountError}</p>
                   )}
                   {loader ? (
-                    <div className="flex justify-center">
-                      Loading...
-                    </div>
+                    <div className="flex justify-center">Loading...</div>
                   ) : (
-                    <Button type="primary" onClick={() => submitRequest()}>
+                    <Button type="primary" onClick={submitRequest}>
                       Confirm
                     </Button>
                   )}
