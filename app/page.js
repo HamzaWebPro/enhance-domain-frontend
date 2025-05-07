@@ -1,20 +1,23 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Container from "./component/_container/Container";
 import { Button, Input, Select, message, Tag } from "antd";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import { FallingLines } from "react-loader-spinner";
 
 const { Option } = Select;
 
 const Page = () => {
   const [domain, setDomain] = useState("");
-  const [extension, setExtension] = useState(".com");
+  const [extension, setExtension] = useState(".x1300");
   const [error, setError] = useState("");
   const [showClaimButton, setShowClaimButton] = useState(false);
   const [showInfoForm, setShowInfoForm] = useState(false);
+  const [loader, setLoader] = useState(false);
 
   const [email, setEmail] = useState("");
   const [amount, setAmount] = useState("");
-
   const [emailError, setEmailError] = useState("");
   const [amountError, setAmountError] = useState("");
 
@@ -24,6 +27,8 @@ const Page = () => {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleInputChange = (e) => {
+    setEmail("");
+    setAmount("");
     const value = e.target.value.trim();
     setDomain(value);
 
@@ -63,49 +68,6 @@ const Page = () => {
     setShowInfoForm(false);
   };
 
-  const handleConfirm = () => {
-    let isValid = true;
-
-    if (!email.trim()) {
-      setEmailError("Email is required");
-      isValid = false;
-    } else if (!emailPattern.test(email)) {
-      setEmailError("Enter a valid email address");
-      isValid = false;
-    }
-
-    if (!amount.trim()) {
-      setAmountError("Amount is required");
-      isValid = false;
-    } else if (isNaN(amount) || Number(amount) <= 0) {
-      setAmountError("Enter a valid amount");
-      isValid = false;
-    }
-
-    if (!isValid) {
-      message.error("Please fix the errors before submitting.");
-      return;
-    }
-
-    const finalData = {
-      domain: domain + extension,
-
-      email,
-      amount,
-      status: "Pending",
-    };
-
-    setSubmissions((prev) => [finalData, ...prev]);
-
-    setDomain("");
-    setExtension(".x1300");
-
-    setEmail("");
-    setAmount("");
-    setShowInfoForm(false);
-    message.success("Data submitted. Check below demo admin panel.");
-  };
-
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
     const val = e.target.value;
@@ -130,14 +92,6 @@ const Page = () => {
     }
   };
 
-  const updateStatus = (index, newStatus) => {
-    setSubmissions((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, status: newStatus } : item
-      )
-    );
-  };
-
   const selectAfter = (
     <Select defaultValue=".x1300" onChange={handleExtensionChange}>
       <Option value=".x1300">.x1300</Option>
@@ -147,19 +101,62 @@ const Page = () => {
     </Select>
   );
 
-  const statusColors = {
-    Pending: "gold",
-    Approved: "green",
-    Rejected: "red",
-    "Payment Issue": "volcano",
-    Paid: "blue",
-  };
+  const submitRequest = () => {
+    setLoader(true);
 
- 
+    if (!domainPattern.test(domain)) {
+      setLoader(false);
+      return toast.error("Use a valid domain name");
+    }
+    if (!domain.trim()) {
+      setLoader(false);
+      return toast.error("Domain Name is required");
+    }
+
+    if (!email.trim()) {
+      setLoader(false);
+      return toast.error("Email is required");
+    }
+    if (!emailPattern.test(email)) {
+      setLoader(false);
+      return toast.error("Enter a valid email address");
+    }
+    if (!amount.trim()) {
+      setLoader(false);
+      return toast.error("Amount is required");
+    }
+
+    if (isNaN(amount) || Number(amount) <= 0) {
+      setLoader(false);
+      return toast.error("Enter a valid amount");
+    }
+    axios
+      .post("/api/sendRequest", {
+        domain: domain + extension,
+        email: email,
+        amount: amount,
+      })
+      .then((res) => {
+        setShowInfoForm(false);
+        setShowClaimButton(false);
+        console.log("Backend response:", res.data.message);
+        toast(res.data.message);
+        setLoader(false);
+        setDomain("");
+        setExtension(".x1300");
+        setEmail("");
+        setAmount("");
+      })
+      .catch((err) => {
+        setLoader(false);
+        toast.error("Server Problem! Can't take request");
+      });
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-green-100 via-black to-green-200 flex items-center justify-center">
       {/* Background Shapes */}
+
       <div className="absolute w-[400px] h-[400px] bg-green-300 opacity-20 rounded-full -top-40 -left-40 blur-3xl"></div>
       <div className="absolute w-[300px] h-[300px] bg-black opacity-10 rotate-45 -bottom-32 -right-32 blur-2xl"></div>
       <div className="absolute w-[200px] h-[200px] bg-green-200 opacity-10 rounded-full top-20 right-1/4 blur-2xl"></div>
@@ -213,77 +210,27 @@ const Page = () => {
                   {amountError && (
                     <p className="text-red-500 text-sm">{amountError}</p>
                   )}
-
-                  <Button type="primary" onClick={handleConfirm}>
-                    Confirm
-                  </Button>
+                  {loader ? (
+                    <div className="flex justify-center">
+                      <FallingLines
+                        color="#ffffff"
+                        width="100"
+                        visible={true}
+                        ariaLabel="falling-circles-loading"
+                      />
+                    </div>
+                  ) : (
+                    <Button type="primary" onClick={() => submitRequest()}>
+                      Confirm
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
           </div>
-
-          {/* Admin Panel */}
-          <h2 className="text-xl md:text-2xl text-white font-semibold mt-12">
-            👇 These data will be visible to admin in the admin panel (demo
-            only)
-          </h2>
-
-          <div className="w-full max-w-2xl mt-6 space-y-4">
-            {submissions.map((item, index) => (
-              <div
-                key={index}
-                className="bg-white/10 text-white p-4 rounded-xl border border-white/20 shadow-md"
-              >
-                <p>
-                  <strong>Domain:</strong> {item.domain}
-                </p>
-                <p>
-                  <strong>Email:</strong> {item.email}
-                </p>
-                <p>
-                  <strong>Amount:</strong> ${item.amount}
-                </p>
-                <p className="mb-2">
-                  <strong>Status:</strong>{" "}
-                  <Tag color={statusColors[item.status] || "default"}>
-                    {item.status}
-                  </Tag>
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="small"
-                    onClick={() => updateStatus(index, "Approved")}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    size="small"
-                    danger
-                    onClick={() => updateStatus(index, "Rejected")}
-                  >
-                    Reject
-                  </Button>
-                  <Button
-                    size="small"
-                    type="dashed"
-                    onClick={() => updateStatus(index, "Payment Issue")}
-                  >
-                    Mark as Payment Issue
-                  </Button>
-                  <Button
-                    size="small"
-                    type="primary"
-                    onClick={() => updateStatus(index, "Paid")}
-                  >
-                    Mark as Paid
-                  </Button>
-                </div>
-                Request Date - 06/05/2025
-              </div>
-            ))}
-          </div>
         </div>
       </Container>
+      <ToastContainer />
     </div>
   );
 };
