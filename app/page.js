@@ -4,7 +4,7 @@ import Container from "./component/_container/Container";
 import { Button, Input, Select, message, Tag } from "antd";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
-import { FallingLines } from "react-loader-spinner";
+
 
 const { Option } = Select;
 
@@ -212,12 +212,7 @@ const Page = () => {
                   )}
                   {loader ? (
                     <div className="flex justify-center">
-                      <FallingLines
-                        color="#ffffff"
-                        width="100"
-                        visible={true}
-                        ariaLabel="falling-circles-loading"
-                      />
+                      Loading...
                     </div>
                   ) : (
                     <Button type="primary" onClick={() => submitRequest()}>
