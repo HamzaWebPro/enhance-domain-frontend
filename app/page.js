@@ -268,7 +268,7 @@ const Page = () => {
             </div>
           </div>
         </div>
-        <ManageExtension />
+       
       </Container>
       <ToastContainer />
     </div>
