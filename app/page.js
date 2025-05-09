@@ -158,6 +158,9 @@ const Page = () => {
       })
       .then((res) => {
         toast(res.data.message);
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
         setLoader(false);
         setDomain("");
         setExtension(".x1300");
