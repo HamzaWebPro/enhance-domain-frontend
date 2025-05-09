@@ -4,6 +4,7 @@ import Container from "./component/_container/Container";
 import { Button, Input, Select } from "antd";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import ManageExtension from "./_components/_manageExtension/ManageExtension";
 
 const { Option } = Select;
 
@@ -20,6 +21,7 @@ const Page = () => {
   const [emailError, setEmailError] = useState("");
   const [amountError, setAmountError] = useState("");
   const [domainAvailable, setDomainAvailable] = useState(false);
+  const [extensions, setExtensions] = useState([]);
 
   const domainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -36,6 +38,17 @@ const Page = () => {
       }
     };
     fetchDomains();
+  }, []);
+  // fetch extensions
+
+  useEffect(() => {
+    const fetchExtensions = () => {
+      axios
+        .get("/api/getExtension")
+        .then((res) => setExtensions(res.data.extensions))
+        .catch((error) => console.error("Error fetching extensions:", error));
+    };
+    fetchExtensions();
   }, []);
 
   const handleInputChange = (e) => {
@@ -159,12 +172,13 @@ const Page = () => {
       });
   };
 
+  // Fetch extensions on load
+
   const selectAfter = (
-    <Select defaultValue=".x1300" onChange={handleExtensionChange}>
-      <Option value=".x1300">.x1300</Option>
-      <Option value=".a-102">.a-102</Option>
-      <Option value=".alishea">.alishea</Option>
-      <Option value=".antwyne">.antwyne</Option>
+    <Select defaultValue={extension} onChange={handleExtensionChange}>
+      {extensions.map((item) => (
+        <Option value={item.name}>{item.name}</Option>
+      ))}
     </Select>
   );
 
@@ -185,9 +199,13 @@ const Page = () => {
               {domain && (
                 <p className="text-sm font-semibold">
                   {domainAvailable ? (
-                    <span className="text-green-400">This domain is available</span>
+                    <span className="text-green-400">
+                      This domain is available
+                    </span>
                   ) : (
-                    <span className="text-red-500">This domain is not available</span>
+                    <span className="text-red-500">
+                      This domain is not available
+                    </span>
                   )}
                 </p>
               )}
@@ -234,7 +252,9 @@ const Page = () => {
                     <p className="text-red-500 text-sm">{amountError}</p>
                   )}
                   {loader ? (
-                    <div className="flex justify-center">Loading...</div>
+                    <div className="flex justify-center text-white font-bold">
+                      Loading...
+                    </div>
                   ) : (
                     <Button type="primary" onClick={submitRequest}>
                       Confirm
@@ -245,6 +265,7 @@ const Page = () => {
             </div>
           </div>
         </div>
+        <ManageExtension />
       </Container>
       <ToastContainer />
     </div>

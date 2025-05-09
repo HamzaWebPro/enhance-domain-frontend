@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import ManageExtension from "../_components/_manageExtension/ManageExtension";
 
 const statusColors = {
   Pending: "warning",
@@ -114,7 +115,7 @@ const Page = () => {
   return (
     <Container>
       <ToastContainer />
-      <h1 className="text-[35px] font-bold text-center mb-4">
+      <h1 className="text-[35px] font-bold text-center mt-2">
         Domain Buy Requests
       </h1>
       <TextField
@@ -209,6 +210,10 @@ const Page = () => {
           rowsPerPageOptions={[5, 10, 20]}
         />
       </TableContainer>
+      <div className="mt-5">
+      <ManageExtension />
+
+      </div>
     </Container>
   );
 };
