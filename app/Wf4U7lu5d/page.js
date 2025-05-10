@@ -19,6 +19,7 @@ import {
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import ManageExtension from "../_components/_manageExtension/ManageExtension";
+import { useRouter } from "next/navigation";
 
 const statusColors = {
   Pending: "warning",
@@ -28,6 +29,9 @@ const statusColors = {
   "Payment Issue": "secondary",
 };
 
+const STORAGE_KEY = "my_secure_key";
+const LOGIN_URL = "/&kkQSgDbHWshumdrNcMJaJtDL$wtX3nDJ4NTDg";
+
 const Page = () => {
   const [reqList, setReqList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
@@ -35,6 +39,8 @@ const Page = () => {
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
 
   // Fetch data from API
   useEffect(() => {
@@ -112,9 +118,35 @@ const Page = () => {
     setPage(0);
   };
 
+  // login and logout functionality
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === "logged_in") {
+        setIsAuthenticated(true);
+      } else {
+        router.push(LOGIN_URL);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEY);
+      router.push(LOGIN_URL);
+    }
+  };
+
   return (
     <Container>
       <ToastContainer />
+      <button
+        onClick={handleLogout}
+        className="bg-red-600 fixed cursor-pointer top-[10px] right-[10px] z-50 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition"
+      >
+        🚪 Logout
+      </button>
       <h1 className="text-[35px] font-bold text-center mt-2">
         Domain Buy Requests
       </h1>
@@ -211,8 +243,7 @@ const Page = () => {
         />
       </TableContainer>
       <div className="mt-5">
-      <ManageExtension />
-
+        <ManageExtension />
       </div>
     </Container>
   );
