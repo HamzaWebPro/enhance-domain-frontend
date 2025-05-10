@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const CORRECT_PIN = "&kkQS+gD+b!HWs*(%humdrNcMJaJtDL+$wtX+3nDJ4^NTD@g";
+const CORRECT_PIN = "Enhance12345";
 const STORAGE_KEY = "my_secure_key";
 
 export default function Login() {
